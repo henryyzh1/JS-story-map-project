@@ -23,6 +23,9 @@ const slideOptions = {
         fillOpacity: 0.5,
       };
     },
+    onEachFeature: (feature, layer) => {
+      layer.bindTooltip(feature.properties.label);
+    },
   },
   'third-slide': {
     style: (feature) => {
@@ -31,6 +34,9 @@ const slideOptions = {
         fillColor: 'yellow',
         fillOpacity: 0.5,
       };
+    },
+    onEachFeature: (feature, layer) => {
+      layer.bindTooltip(feature.properties.label);
     },
   },
 };

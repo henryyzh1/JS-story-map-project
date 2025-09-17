@@ -37,9 +37,13 @@ class SlideDeck {
     const defaultOptions = {
       pointToLayer: (p, latlng) => L.marker(latlng),
       style: (feature) => feature.properties.style,
+      onEachFeature: (feature, layer) => {
+        if (feature.properties && feature.properties.label) {
+          layer.bindTooltip(feature.properties.label);
+        }
+      }
     };
     const geoJsonLayer = L.geoJSON(data, options || defaultOptions)
-        .bindTooltip((l) => l.feature.properties.label)
         .addTo(this.dataLayer);
 
     return geoJsonLayer;
