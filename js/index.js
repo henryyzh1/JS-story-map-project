@@ -1,6 +1,12 @@
 import { SlideDeck } from './slidedeck.js';
 
-const map = L.map('map', {scrollWheelZoom: false}).setView([0, 0], 0);
+const map = L.map('map', {
+  scrollWheelZoom: false,
+  maxBounds: [[-85, -180], [85, 180]],
+  maxBoundsViscosity: 1,
+  worldCopyJump: true,
+  noWrap: true
+}).setView([0, 0], 0);
 
 // ## The Base Tile Layer
 L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoieXpoNzExIiwiYSI6ImNrbm9qeDN2YzE1Mzkyb3Fqa2QzdnRkOHEifQ.oBvJLn0dPTaxCuBgr5OHyQ', {

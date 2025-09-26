@@ -45,6 +45,24 @@ class SlideDeck {
     this.slideOptions = slideOptions;
 
     this.dataLayer = L.layerGroup().addTo(map);
+    this.legend = L.control({ position: 'bottomright' });
+    this.legend.onAdd = function(map) {
+      const div = L.DomUtil.create('div', 'info legend');
+      div.style.background = "rgba(255,255,255,0.8)";
+      div.style.padding = "6px 8px";
+      div.style.borderRadius = "4px";
+      div.style.fontSize = "12px";
+      div.style.marginBottom = "40px";
+      const labels = ["≥7.0", "≥8.0", "≥9.0"];
+      const colors = ["#f7fd04", "#ff7a00", "#da2d2d"];
+      for (let i = 0; i < labels.length; i++) {
+        div.innerHTML +=
+          '<i style="background:' + colors[i] +
+          '; width:12px; height:12px; display:inline-block; margin-right:6px;"></i> ' +
+          labels[i] + '<br>';
+      }
+      return div;
+    };
     this.currentSlideIndex = 0;
   }
 
@@ -66,6 +84,17 @@ class SlideDeck {
 
     const defaultOptions = {
       pointToLayer: (feature, latlng) => L.circleMarker(latlng, pointStyle(feature)),
+      onEachFeature: (feature, layer) => {
+        const props = feature.properties;
+        const content = `
+          <b>${props.place || 'Unknown Location'}</b><br>
+          Magnitude: ${props.magnitudo || 'N/A'}<br>
+          Depth: ${props.depth || 'N/A'} km<br>
+          Date: ${(props.date || 'N/A').replace('T',' ').replace('Z','')}<br>
+          Country/Region: ${props.state || 'N/A'}
+        `;
+        layer.bindPopup(content);
+      },
     };
     const geoJsonLayer = L.geoJSON(data, options || defaultOptions)
         .bindTooltip((l) => l.feature.properties.label)
@@ -146,6 +175,16 @@ class SlideDeck {
       this.map.flyToBounds(boundsFromBbox(collection.bbox));
     } else {
       this.map.flyToBounds(layer.getBounds());
+    }
+
+    if (slide.id === "title-slide") {
+      if (!this.map.hasLayer(this.legend)) {
+        this.legend.addTo(this.map);
+      }
+    } else {
+      if (this.map.hasLayer(this.legend)) {
+        this.map.removeControl(this.legend);
+      }
     }
   }
 
