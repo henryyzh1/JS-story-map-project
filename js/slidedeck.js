@@ -1,4 +1,32 @@
 /**
+ * Returns the style object for a point feature.
+ * @param {object} feature The GeoJSON feature
+ * @return {object} The Leaflet circle marker style
+ */
+function pointStyle(feature) {
+  // Magnitude-based coloring logic
+  let mag = feature.properties && feature.properties.magnitudo !== undefined ? feature.properties.magnitudo : null;
+  let fillColor = "#ffefcf";
+  if (mag !== null) {
+    if (mag >= 9.0) {
+      fillColor = "#da2d2d";
+    } else if (mag >= 8.0) {
+      fillColor = "#ff7a00";
+    } else if (mag >= 7.0) {
+      fillColor = "#f7fd04";
+    }
+  }
+  return {
+    radius: 2,
+    fillColor: fillColor,
+    color: "#000",
+    weight: 0,
+    opacity: 1,
+    fillOpacity: 0.8,
+  };
+}
+
+/**
  * A slide deck object
  */
 class SlideDeck {
@@ -37,8 +65,7 @@ class SlideDeck {
     this.dataLayer.clearLayers();
 
     const defaultOptions = {
-      pointToLayer: (p, latlng) => L.marker(latlng),
-      style: (feature) => feature.properties.style,
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, pointStyle(feature)),
     };
     const geoJsonLayer = L.geoJSON(data, options || defaultOptions)
         .bindTooltip((l) => l.feature.properties.label)
