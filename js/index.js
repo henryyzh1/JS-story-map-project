@@ -29,7 +29,7 @@ const map = L.map("map", {
   noWrap: true,
   minZoom: 2.5,
   maxZoom: 8
-}).setView([15, 160], 3); // Pacific-centered
+}).setView([15, 160], 2.5); // Pacific-centered
 
 // ## The Base Tile Layer
 L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoieXpoNzExIiwiYSI6ImNrbm9qeDN2YzE1Mzkyb3Fqa2QzdnRkOHEifQ.oBvJLn0dPTaxCuBgr5OHyQ", {
