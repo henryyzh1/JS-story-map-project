@@ -9,6 +9,8 @@ The story is divided into slides:
 2. **Second Slide** – Shows the spatial relationship between earthquake epicenters and tectonic plate boundaries.  
 3. **Third Slide** – Focuses on the most significant 7.5+ magnitude earthquakes, with marker radius scaled by significance and tsunami information included.  
 
+The final pages are here! [https://henryyzh1.github.io/JS-story-map-project/](https://henryyzh1.github.io/JS-story-map-project/)  
+
 ## Data Sources
 - **USGS Earthquake Catalog** (1990–2023, filtered by magnitude ≥ 6.0)  
   [https://www.kaggle.com/datasets/alessandrolobello/the-ultimate-earthquake-dataset-from-1990-2023/data](https://www.kaggle.com/datasets/alessandrolobello/the-ultimate-earthquake-dataset-from-1990-2023/data)  
@@ -22,19 +24,6 @@ The story is divided into slides:
 - Popups provide earthquake details including date, magnitude, location, and tsunami occurrence  
 - Legends dynamically adapt to the slide content (magnitude ranges and plate boundaries)  
 - Deployed via **GitHub Pages**  
-
-## How to Run
-1. Clone this repository:  
-   ```bash
-   git clone https://github.com/your-username/JS-story-map-project.git
-   cd JS-story-map-project
-   ```
-2. Open `index.html` in a web browser.  
-3. Scroll through the story map to explore each slide.  
-
-## Deployment
-- The project is deployed via GitHub Pages.  
-- Repository Settings → Pages → Source → `main` branch, root folder.  
 
 ## Acknowledgments
 - Data provided by **USGS Earthquake Hazards Program**.  
