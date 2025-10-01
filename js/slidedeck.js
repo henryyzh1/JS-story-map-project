@@ -47,7 +47,7 @@ class SlideDeck {
     this.slideOptions = slideOptions;
 
     this.dataLayer = L.layerGroup().addTo(map);
-    this.legend = L.control({ position: 'bottomleft' });
+    this.legend = L.control({ position: "bottomleft" });
 
     // Define legends for different slides
     this.legends = {
@@ -66,7 +66,7 @@ class SlideDeck {
     };
 
     this.legend.onAdd = (map) => {
-      const div = L.DomUtil.create('div', 'info legend');
+      const div = L.DomUtil.create("div", "info legend");
       div.style.background = "rgba(255,255,255,0.8)";
       div.style.padding = "6px 8px";
       div.style.borderRadius = "4px";
@@ -83,11 +83,11 @@ class SlideDeck {
         for (let i = 0; i < currentLegend.labels.length; i++) {
           let styleHTML;
           if (currentLegend.labels[i].includes("Plate")) {
-            styleHTML = '<span style="background:' + currentLegend.colors[i] + '; width:12px; height:2px; display:inline-block; margin-right:6px; vertical-align:middle;"></span>';
+            styleHTML = "<span style=\"background:" + currentLegend.colors[i] + "; width:12px; height:2px; display:inline-block; margin-right:6px; vertical-align:middle;\"></span>";
           } else {
-            styleHTML = '<span style="background:' + currentLegend.colors[i] + '; width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:6px;"></span>';
+            styleHTML = "<span style=\"background:" + currentLegend.colors[i] + "; width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:6px;\"></span>";
           }
-          div.innerHTML += styleHTML + currentLegend.labels[i] + '<br>';
+          div.innerHTML += styleHTML + currentLegend.labels[i] + "<br>";
         }
       }
 
@@ -118,12 +118,12 @@ class SlideDeck {
       onEachFeature: (feature, layer) => {
         const props = feature.properties;
         const content = `
-          <b>${props.place || 'Unknown Location'}</b><br>
-          Magnitude: ${props.magnitudo || 'N/A'}<br>
-          Depth: ${props.depth || 'N/A'} km<br>
-          Date: ${(props.date || 'N/A').replace('T',' ').replace('Z','')}<br>
-          Country/Region: ${props.state || 'N/A'}<br>
-          Significance: ${props.significance || 'N/A'}
+          <b>${props.place || "Unknown Location"}</b><br>
+          Magnitude: ${props.magnitudo || "N/A"}<br>
+          Depth: ${props.depth || "N/A"} km<br>
+          Date: ${(props.date || "N/A").replace("T"," ").replace("Z","")}<br>
+          Country/Region: ${props.state || "N/A"}<br>
+          Significance: ${props.significance || "N/A"}
         `;
         layer.bindPopup(content);
       },
@@ -162,7 +162,7 @@ class SlideDeck {
    */
   hideAllSlides() {
     for (const slide of this.slides) {
-      slide.classList.add('hidden');
+      slide.classList.add("hidden");
     }
   }
 
@@ -219,10 +219,10 @@ class SlideDeck {
           l.openTooltip();
         });
       }
-      this.map.removeEventListener('moveend', handleFlyEnd);
+      this.map.removeEventListener("moveend", handleFlyEnd);
     };
 
-    this.map.addEventListener('moveend', handleFlyEnd);
+    this.map.addEventListener("moveend", handleFlyEnd);
     // Keep map center fixed, do not auto-fit to data
 
     // Update legend based on slide id
