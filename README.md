@@ -1,4 +1,4 @@
-# Earthquake Story Map
+# Henry's Earthquake Story Map
 
 ## Project Overview
 This project is an interactive story map that visualizes global earthquakes of magnitude **6.0 and above** from 1990 to 2023.  
