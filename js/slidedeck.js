@@ -1,9 +1,10 @@
 /**
  * Returns the style object for a point feature.
  * @param {object} feature The GeoJSON feature
+ * @param {string} slideId The ID of the current slide
  * @return {object} The Leaflet circle marker style
  */
-function pointStyle(feature) {
+function pointStyle(feature, slideId) {
   // Magnitude-based coloring logic
   let mag = feature.properties && feature.properties.magnitudo !== undefined ? feature.properties.magnitudo : null;
   let fillColor = "#ffefcf";
@@ -16,8 +17,9 @@ function pointStyle(feature) {
       fillColor = "#f7fd04";
     }
   }
+  let radius = 2;
   return {
-    radius: 2,
+    radius: radius,
     fillColor: fillColor,
     color: "#000",
     weight: 0,
@@ -45,24 +47,53 @@ class SlideDeck {
     this.slideOptions = slideOptions;
 
     this.dataLayer = L.layerGroup().addTo(map);
-    this.legend = L.control({ position: 'bottomright' });
-    this.legend.onAdd = function(map) {
+    this.legend = L.control({ position: 'bottomleft' });
+
+    // Define legends for different slides
+    this.legends = {
+      "title-slide": {
+        labels: ["6.0 – 6.9", "7.0 – 7.9", "8.0 – 8.9", "≥ 9.0"],
+        colors: ["#ffefcf", "#f7fd04", "#ff7a00", "#da2d2d"]
+      },
+      "second-slide": {
+        labels: ["6.0 – 6.9", "7.0 – 7.9", "8.0 – 8.9", "≥ 9.0", "Plate Boundaries"],
+        colors: ["#ffefcf", "#f7fd04", "#ff7a00", "#da2d2d", "#4dc8fc"]
+      },
+      "third-slide": {
+        labels: ["7.5 – 7.9", "8.0 – 8.9", "≥ 9.0", "Plate Boundaries", "Radius reflects significance"],
+        colors: ["#f7fd04", "#ff7a00", "#da2d2d", "#4dc8fc", ""]
+      }
+    };
+
+    this.legend.onAdd = (map) => {
       const div = L.DomUtil.create('div', 'info legend');
       div.style.background = "rgba(255,255,255,0.8)";
       div.style.padding = "6px 8px";
       div.style.borderRadius = "4px";
       div.style.fontSize = "12px";
       div.style.marginBottom = "40px";
-      const labels = ["≥7.0", "≥8.0", "≥9.0"];
-      const colors = ["#f7fd04", "#ff7a00", "#da2d2d"];
-      for (let i = 0; i < labels.length; i++) {
-        div.innerHTML +=
-          '<i style="background:' + colors[i] +
-          '; width:12px; height:12px; display:inline-block; margin-right:6px;"></i> ' +
-          labels[i] + '<br>';
+
+      // Determine which legend to show based on currentSlide
+      let currentLegend = null;
+      if (this.currentSlide && this.legends[this.currentSlide.id]) {
+        currentLegend = this.legends[this.currentSlide.id];
       }
+
+      if (currentLegend) {
+        for (let i = 0; i < currentLegend.labels.length; i++) {
+          let styleHTML;
+          if (currentLegend.labels[i].includes("Plate")) {
+            styleHTML = '<span style="background:' + currentLegend.colors[i] + '; width:12px; height:2px; display:inline-block; margin-right:6px; vertical-align:middle;"></span>';
+          } else {
+            styleHTML = '<span style="background:' + currentLegend.colors[i] + '; width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:6px;"></span>';
+          }
+          div.innerHTML += styleHTML + currentLegend.labels[i] + '<br>';
+        }
+      }
+
       return div;
     };
+
     this.currentSlideIndex = 0;
   }
 
@@ -83,7 +114,7 @@ class SlideDeck {
     this.dataLayer.clearLayers();
 
     const defaultOptions = {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, pointStyle(feature)),
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, pointStyle(feature, options ? options.slideId : undefined)),
       onEachFeature: (feature, layer) => {
         const props = feature.properties;
         const content = `
@@ -91,7 +122,8 @@ class SlideDeck {
           Magnitude: ${props.magnitudo || 'N/A'}<br>
           Depth: ${props.depth || 'N/A'} km<br>
           Date: ${(props.date || 'N/A').replace('T',' ').replace('Z','')}<br>
-          Country/Region: ${props.state || 'N/A'}
+          Country/Region: ${props.state || 'N/A'}<br>
+          Significance: ${props.significance || 'N/A'}
         `;
         layer.bindPopup(content);
       },
@@ -112,7 +144,11 @@ class SlideDeck {
    * @return {object} The FeatureCollection as loaded from the data file
    */
   async getSlideFeatureCollection(slide) {
-    const resp = await fetch(`data/${slide.id}.json`);
+    let fileName = slide.id;
+    if (slide.id === "second-slide") {
+      fileName = "title-slide"; // reuse title-slide data
+    }
+    const resp = await fetch(`data/${fileName}.json`);
     const data = await resp.json();
     return data;
   }
@@ -138,9 +174,25 @@ class SlideDeck {
    * @param {HTMLElement} slide The slide's HTML element
    */
   async syncMapToSlide(slide) {
+    // Remove any custom layers from the previous slide
+    if (this.currentSlide && this.slideOptions[this.currentSlide.id]) {
+      const prevOptions = this.slideOptions[this.currentSlide.id];
+      if (typeof prevOptions.onRemove === "function") {
+        prevOptions.onRemove(this.map);
+      }
+    }
+    this.currentSlide = slide;
+
     const collection = await this.getSlideFeatureCollection(slide);
     const options = this.slideOptions[slide.id];
+    if (options) {
+      options.slideId = slide.id;
+    }
     const layer = this.updateDataLayer(collection, options);
+
+    if (options && typeof options.onAdd === "function") {
+      options.onAdd(this.map, this.dataLayer);
+    }
 
     /**
      * Create a bounds object from a GeoJSON bbox array.
@@ -171,13 +223,18 @@ class SlideDeck {
     };
 
     this.map.addEventListener('moveend', handleFlyEnd);
-    if (collection.bbox) {
-      this.map.flyToBounds(boundsFromBbox(collection.bbox));
-    } else {
-      this.map.flyToBounds(layer.getBounds());
-    }
+    // Keep map center fixed, do not auto-fit to data
 
+    // Update legend based on slide id
     if (slide.id === "title-slide") {
+      if (!this.map.hasLayer(this.legend)) {
+        this.legend.addTo(this.map);
+      }
+    } else if (slide.id === "second-slide") {
+      if (!this.map.hasLayer(this.legend)) {
+        this.legend.addTo(this.map);
+      }
+    } else if (slide.id === "third-slide") {
       if (!this.map.hasLayer(this.legend)) {
         this.legend.addTo(this.map);
       }
@@ -261,4 +318,4 @@ class SlideDeck {
   }
 }
 
-export { SlideDeck };
+export { SlideDeck, pointStyle };
