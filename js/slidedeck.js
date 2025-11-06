@@ -1,3 +1,5 @@
+import { toPacificCentric } from "./geo-utils.js";
+
 /**
  * Returns the style object for a point feature.
  * @param {object} feature The GeoJSON feature
@@ -25,6 +27,7 @@ function pointStyle(feature, slideId) {
     weight: 0,
     opacity: 1,
     fillOpacity: 0.8,
+    keyboard: false,
   };
 }
 
@@ -129,10 +132,27 @@ class SlideDeck {
       },
     };
     const geoJsonLayer = L.geoJSON(data, options || defaultOptions)
-        .bindTooltip((l) => l.feature.properties.label)
         .addTo(this.dataLayer);
 
+    geoJsonLayer.eachLayer((featureLayer) => {
+      const tooltipText = this.getTooltipText(featureLayer);
+      if (tooltipText) {
+        featureLayer.bindTooltip(tooltipText);
+      }
+    });
+
     return geoJsonLayer;
+  }
+
+  /**
+   * Return a safe tooltip text string for the supplied feature layer.
+   * @param {L.Layer} layer The feature layer bound in the GeoJSON collection
+   * @return {string} Tooltip text (empty string if nothing appropriate)
+   */
+  getTooltipText(layer) {
+    const props = layer?.feature?.properties || {};
+    const tooltip = props.label ?? props.place ?? props.state ?? props.ID ?? props.name ?? "";
+    return typeof tooltip === "string" ? tooltip : tooltip != null ? String(tooltip) : "";
   }
 
   /**
@@ -150,7 +170,7 @@ class SlideDeck {
     }
     const resp = await fetch(`data/${fileName}.json`);
     const data = await resp.json();
-    return data;
+    return toPacificCentric(data);
   }
 
   /**
@@ -195,28 +215,17 @@ class SlideDeck {
     }
 
     /**
-     * Create a bounds object from a GeoJSON bbox array.
-     * @param {Array} bbox The bounding box of the collection
-     * @return {L.latLngBounds} The bounds object
-     */
-    const boundsFromBbox = (bbox) => {
-      const [west, south, east, north] = bbox;
-      const bounds = L.latLngBounds(
-          L.latLng(south, west),
-          L.latLng(north, east),
-      );
-      return bounds;
-    };
-
-    /**
      * Create a temporary event handler that will show tooltips on the map
      * features, after the map is done "flying" to contain the data layer.
      */
     const handleFlyEnd = () => {
       if (slide.showpopups) {
         layer.eachLayer((l) => {
-          l.bindTooltip(l.feature.properties.label, { permanent: true });
-          l.openTooltip();
+          const tooltipText = this.getTooltipText(l);
+          if (tooltipText) {
+            l.bindTooltip(tooltipText, { permanent: true });
+            l.openTooltip();
+          }
         });
       }
       this.map.removeEventListener("moveend", handleFlyEnd);

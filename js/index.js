@@ -1,10 +1,10 @@
+import { toPacificCentric } from "./geo-utils.js";
 import { SlideDeck, pointStyle } from "./slidedeck.js";
-
 let plateLayer = null;
 
 (async () => {
   const resp = await fetch("data/plate_boundaries.geojson");
-  const boundaries = await resp.json();
+  const boundaries = toPacificCentric(await resp.json());
   plateLayer = L.geoJSON(boundaries, {
     style: {
       color: "#4dc8fc",
@@ -23,13 +23,9 @@ let plateLayer = null;
 
 const map = L.map("map", {
   scrollWheelZoom: false,
-  maxBounds: [[-85, -180], [85, 180]], // clamp to world extent
-  maxBoundsViscosity: 1.0,              // hard clamp
-  worldCopyJump: false,
-  noWrap: true,
-  minZoom: 2.5,
-  maxZoom: 8
-}).setView([15, 160], 2.5); // Pacific-centered
+  zoomSnap: 0.25,
+  worldCopyJump: true,
+}).setView([15, -150], 2.5); // Pacific-centered (equivalent to 210°E)
 
 // ## The Base Tile Layer
 L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoieXpoNzExIiwiYSI6ImNrbm9qeDN2YzE1Mzkyb3Fqa2QzdnRkOHEifQ.oBvJLn0dPTaxCuBgr5OHyQ", {
@@ -37,14 +33,8 @@ L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/
   maxZoom: 8,
   zoomOffset: -1,
   tileSize: 512,
-  noWrap: true,
-  bounds: [[-85, -180], [85, 180]],
   attribution: "© <a href=\"https://www.mapbox.com/\">Mapbox</a>"
 }).addTo(map);
-
-map.on("moveend", () => {
-  map.panInsideBounds(map.options.maxBounds, { animate: true });
-});
 
 // ## Interface Elements
 const container = document.querySelector(".slide-section");
