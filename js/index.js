@@ -24,7 +24,7 @@ let plateLayer = null;
 const map = L.map("map", {
   scrollWheelZoom: false,
   zoomSnap: 0.25,
-  worldCopyJump: false,
+  worldCopyJump: true,
 }).setView([15, -150], 2.5); // Pacific-centered (equivalent to 210°E)
 
 // ## The Base Tile Layer
@@ -35,25 +35,6 @@ L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/
   tileSize: 512,
   attribution: "© <a href=\"https://www.mapbox.com/\">Mapbox</a>"
 }).addTo(map);
-
-let suppressWrap = false;
-map.on("moveend", () => {
-  if (suppressWrap) {
-    suppressWrap = false;
-    return;
-  }
-  const center = map.getCenter();
-  let { lng } = center;
-  if (lng > 540) {
-    lng -= 360;
-  } else if (lng < -180) {
-    lng += 360;
-  } else {
-    return;
-  }
-  suppressWrap = true;
-  map.setView([center.lat, lng], { animate: false });
-});
 
 // ## Interface Elements
 const container = document.querySelector(".slide-section");
